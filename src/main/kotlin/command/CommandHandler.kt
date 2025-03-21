@@ -9,6 +9,7 @@ import dev.kord.core.entity.interaction.GuildChatInputCommandInteraction
 import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.message.embed
+import dev.kord.rest.request.RestRequestException
 import io.github.classgraph.ClassGraph
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -66,17 +67,23 @@ object CommandHandler {
                 }
             }
 
-            interaction.kord.getChannelOf<TextChannel>(Snowflake(1204677789421150208))?.createMessage {
-                embed {
-                    title = "Error!"
-                    description = "There was an error running /$command in \"${interaction.guild.asGuild().name}\"!"
-                    field {
-                        value = """
-                            ```kt
-                            ${e.stackTraceToString()}
-                            ```
-                        """.trimIndent()
+            try {
+                interaction.kord.getChannelOf<TextChannel>(Snowflake(1204677789421150208))?.createMessage {
+                    embed {
+                        title = "Error!"
+                        description = "There was an error running /$command in \"${interaction.guild.asGuild().name}\"!"
+                        field {
+                            value = """
+                                ```kt
+                                ${e.stackTraceToString()}
+                                ```
+                            """.trimIndent()
+                        }
                     }
+                }
+            } catch (e: RestRequestException) {
+                interaction.kord.getChannelOf<TextChannel>(Snowflake(1204677789421150208))?.createMessage {
+                    content = e.stackTraceToString()
                 }
             }
         }
